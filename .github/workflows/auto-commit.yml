@@ -1,0 +1,32 @@
+name: Daily auto-commit
+
+# Run at 00:00, 08:00 and 16:00 UTC every day
+on:
+  schedule:
+    - cron: '0 0 * * *'
+    - cron: '0 8 * * *'
+    - cron: '0 16 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Update timestamp file
+        run: |
+          echo "Last run: $(date -u)" >> daily.log
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add daily.log
+          git commit -m "chore: auto commit $(date -u)" || echo "No changes to commit"
+          git push
